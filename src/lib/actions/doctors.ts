@@ -4,6 +4,7 @@ import { prisma } from "../prisma";
 import { Gender } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { generateAvatar } from "../utils";
+import { unique } from "next/dist/build/utils";
 
 export async function getDoctors() {
   try {
@@ -58,10 +59,11 @@ export async function createDoctor(input: createDoctorInput) {
 
 interface updateDoctorInput extends Partial<createDoctorInput> {
   id: string;
+  email: string;
 }
 export async function updateDoctor(input: updateDoctorInput) {
   try {
-    if (!input.name || input.email)
+    if (!input.name || !input.email)
       throw new Error("Name and email are required");
 
     const currentDoctor = await prisma.doctor.findUnique({
@@ -73,7 +75,7 @@ export async function updateDoctor(input: updateDoctorInput) {
 
     //if email is changing , check if the new email already exists
     if (input.email !== currentDoctor.email) {
-      const existingDoctor = await prisma.doctor.findUnique({
+      const existingDoctor = await prisma.doctor.findFirst({
         where: { email: input.email },
       });
 
