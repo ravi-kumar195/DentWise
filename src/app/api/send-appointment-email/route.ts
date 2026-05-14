@@ -49,5 +49,11 @@ export async function POST(request: Request) {
       { message: "Email sent successfully!", emailId: data?.id },
       { status: 200 },
     );
-  } catch (error) {}
+  } catch (error) {
+    console.error("Email sending error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
+  }
 }
