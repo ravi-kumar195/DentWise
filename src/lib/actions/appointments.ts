@@ -126,7 +126,35 @@ interface BookAppointmentInput {
   time: string;
   reason?: string;
 }
+import { currentUser } from "@clerk/nextjs/server";
 
+async function getOrCreateUser(clerkId: string) {
+  let user = await prisma.user.findUnique({
+    where: { clerkId },
+  });
+
+  if (user) return user;
+
+  const clerkUser = await currentUser();
+
+  if (!clerkUser) {
+    throw new Error("Unable to retrieve Clerk user");
+  }
+
+  user = await prisma.user.create({
+    data: {
+      clerkId: clerkUser.id,
+      email: clerkUser.emailAddresses[0]?.emailAddress || "",
+      firstName: clerkUser.firstName || "",
+      lastName: clerkUser.lastName || "",
+      imageUrl: clerkUser.imageUrl || "",
+    },
+  });
+
+  console.log("Created new DB user:", user);
+
+  return user;
+}
 export async function bookAppointment(input: BookAppointmentInput) {
   try {
     const { userId } = await auth();
@@ -137,11 +165,7 @@ export async function bookAppointment(input: BookAppointmentInput) {
       throw new Error("Doctor, date, and time are required");
     }
 
-    const user = await prisma.user.findUnique({ where: { clerkId: userId } });
-    if (!user)
-      throw new Error(
-        "User not found. Please ensure your account is properly set up.",
-      );
+    const user = await getOrCreateUser(userId);
 
     const appointment = await prisma.appointment.create({
       data: {
@@ -166,9 +190,18 @@ export async function bookAppointment(input: BookAppointmentInput) {
 
     return transformAppointment(appointment);
   } catch (error) {
-    console.error("Error booking appointment:", error);
-    throw new Error("Failed to book appointment. Please try again later.");
+    console.error("FULL BOOKING ERROR:", error);
+
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+
+    throw error;
   }
+  // } catch (error) {
+  //   console.error("Error booking appointment:", error);
+  //   throw new Error("Failed to book appointment. Please try again later.");
+  // }
 }
 
 export async function updateAppointmentStatus(input: {

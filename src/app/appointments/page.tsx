@@ -1,3 +1,4 @@
+"use client";
 import ProgressSteps from "@/components/appointments/ProgressSteps";
 import Navbar from "@/components/Navbar";
 import { APPOINTMENT_TYPES } from "@/lib/utils";
@@ -11,6 +12,7 @@ import {
 import BookingConfirmationStep from "@/components/appointments/BookingConfirmationStep";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { AppointmentConfirmationModal } from "@/components/appointments/AppointmentConfirmationModal";
 import AppointmentConfirmationEmail from "@/components/emails/AppointmentCofirmationEmail";
 
 function AppointmentsPage() {
