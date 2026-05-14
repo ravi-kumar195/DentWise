@@ -17,8 +17,8 @@ const nextConfig: NextConfig = {
         hostname: "img.clerk.com",
       },
     ],
+    unoptimized: true,
   },
-  unoptimized: true,
 };
 module.exports = nextConfig;
 export default nextConfig;
